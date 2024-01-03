@@ -13,10 +13,10 @@ class PharmixRecommender:
         self._all_products = get_all_products()
 
     def __call__(self) -> list:
-        lst1 = set(self._content_based())
-        lst2 = set(self._collaborative_filtering())
+        content_based_lst = set(self._content_based())
+        collaborative_filtering_lst = set(self._collaborative_filtering())
 
-        products_id = list(lst1 - lst2)
+        products_id = list(content_based_lst - collaborative_filtering_lst)
         recommended_products = self._all_products.iloc[products_id, :]
 
         db.close()
@@ -66,7 +66,7 @@ class PharmixRecommender:
 
 
     def _collaborative_filtering(self) -> list[int]:
-        recommendationSize = 15
+        recommendation_size = 15
         user_products_lst = get_user_products(self.user_id)
         user_products_lst['product_id'] = user_products_lst['product_id'].astype(str)
         product_set = set(user_products_lst['product_id'])
@@ -91,9 +91,9 @@ class PharmixRecommender:
         user_index = interactions[interactions['user_id'] == str(self.user_id)]['user_index'][0].astype('int64')
         similarity = cosine_similarity(rating_mat[user_index, :], rating_mat).flatten()
         if (len(similarity) < 15):
-            recommendationSize = len(similarity)
+            recommendation_size = len(similarity)
         
-        indices = np.argpartition(similarity, -recommendationSize)[-recommendationSize:]
+        indices = np.argpartition(similarity, -recommendation_size)[-recommendation_size:]
         similar_users = interactions[interactions['user_index'].isin(indices)].copy()
         similar_users = similar_users[similar_users['user_id'] != str(self.user_id)]
 
