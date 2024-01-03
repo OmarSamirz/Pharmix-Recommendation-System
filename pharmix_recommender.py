@@ -16,10 +16,14 @@ class PharmixRecommender:
         content_based_lst = set(self._content_based())
         collaborative_filtering_lst = set(self._collaborative_filtering())
 
+        # remove duplicates from the lists above
         products_id = list(content_based_lst - collaborative_filtering_lst)
         recommended_products = self._all_products.iloc[products_id, :]
 
         db.close()
+        
+        # creating list of products to recommend
+        # these products to the user
         result = [Product(product[1][0] + 1, product[1][1], product[1][2],
                           product[1][3], 0, 0, product[1][5],
                           product[1][12], product[1][7], False, False, product[1][11]) 
@@ -29,17 +33,20 @@ class PharmixRecommender:
 
 
     def get_products(self) -> list:
-        lst1 = set(self._content_based())
-        lst2 = set(self._collaborative_filtering())
+        content_based_lst = set(self._content_based())
+        collaborative_filtering_lst = set(self._collaborative_filtering())
 
-        products_id = list(lst1 - lst2)
+        # remove duplicates from the lists above
+        products_id = list(content_based_lst - collaborative_filtering_lst)
         recommended_products = self._all_products.iloc[products_id, :]
 
         db.close()
+        
+        # creating list of products to recommend 
+        # these products to the user as a final result
         result = [Product(product[1][0] + 1, product[1][1], product[1][2],
-                        product[1][3], 0, 0, product[1][5],
-                        product[1][12], product[1][7], False, False, 
-                        product[1][11]) 
+                          product[1][3], 0, 0, product[1][5],
+                          product[1][12], product[1][7], False, False, product[1][11]) 
                         for product in recommended_products.iterrows()]
     
         return result
@@ -49,11 +56,16 @@ class PharmixRecommender:
         vectorizer = TfidfVectorizer()
         tfidf = vectorizer.fit_transform(self._all_products['tags'])
 
-        # find similar products to user's products
+        # get all the products that
+        # the user liked such that he/she puts this product 
+        # in favorites, in the carts or ordered this product before
         user_products_id_lst = get_user_products(user_id=1)['product_id']
         if (len(user_products_id_lst) == 0):
             return []
 
+        # finding similar products to the user's liked products
+        # using category, active ingredient and the concentration 
+        # of the active ingredient in the medicine
         similar_products_lst = []
         for product_id in user_products_id_lst:
             query_vec = vectorizer.transform([self._all_products['tags'].iloc[product_id]])
