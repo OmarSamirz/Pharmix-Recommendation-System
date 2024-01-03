@@ -17,6 +17,7 @@ class PharmixRecommender:
         collaborative_filtering_lst = set(self._collaborative_filtering())
 
         # remove duplicates from the lists above
+        # then get all the products using id 
         products_id = list(content_based_lst - collaborative_filtering_lst)
         recommended_products = self._all_products.iloc[products_id, :]
 
